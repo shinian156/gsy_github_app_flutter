@@ -17,14 +17,13 @@ import 'package:photo_view/photo_view.dart';
  */
 
 class PhotoViewPage extends StatelessWidget {
-  final String url;
+  static const String sName = "PhotoViewPage";
 
-  PhotoViewPage(this.url);
+  PhotoViewPage();
 
   @override
   Widget build(BuildContext context) {
-    OptionControl optionControl = new OptionControl();
-    optionControl.url = url;
+    final String url = ModalRoute.of(context).settings.arguments;
     return new Scaffold(
         floatingActionButton: new FloatingActionButton(
           child: new Icon(Icons.file_download),
@@ -45,8 +44,8 @@ class PhotoViewPage extends StatelessWidget {
           },
         ),
         appBar: new AppBar(
-          title: GSYTitleBar("",
-              rightWidget: new GSYCommonOptionWidget(optionControl)),
+          title:
+              GSYTitleBar("", rightWidget: new GSYCommonOptionWidget(url: url)),
         ),
         body: new Container(
           color: Colors.black,

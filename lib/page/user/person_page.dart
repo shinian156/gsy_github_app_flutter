@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gsy_github_app_flutter/common/dao/event_dao.dart';
 import 'package:gsy_github_app_flutter/common/dao/user_dao.dart';
+import 'package:gsy_github_app_flutter/common/localization/default_localizations.dart';
 import 'package:gsy_github_app_flutter/model/User.dart';
 import 'package:gsy_github_app_flutter/model/UserOrg.dart';
 import 'package:gsy_github_app_flutter/common/utils/common_utils.dart';
@@ -41,8 +42,6 @@ class _PersonState extends BasePersonState<PersonPage> {
 
   final List<UserOrg> orgList = new List();
 
-  final OptionControl titleOptionControl = new OptionControl();
-
   _PersonState(this.userName);
 
   ///处理用户信息显示
@@ -50,7 +49,6 @@ class _PersonState extends BasePersonState<PersonPage> {
     if (isShow) {
       setState(() {
         userInfo = res.data;
-        titleOptionControl.url = res.data.html_url;
       });
     }
   }
@@ -101,8 +99,8 @@ class _PersonState extends BasePersonState<PersonPage> {
     if (isShow) {
       setState(() {
         focus = (focusRes != null && focusRes.result)
-            ? CommonUtils.getLocale(context).user_focus
-            : CommonUtils.getLocale(context).user_un_focus;
+            ? GSYLocalizations.i18n(context).user_focus
+            : GSYLocalizations.i18n(context).user_un_focus;
         focusStatus = (focusRes != null && focusRes.result);
       });
     }
@@ -150,7 +148,9 @@ class _PersonState extends BasePersonState<PersonPage> {
         appBar: new AppBar(
             title: GSYTitleBar(
           (userInfo != null && userInfo.login != null) ? userInfo.login : "",
-          rightWidget: GSYCommonOptionWidget(titleOptionControl),
+          rightWidget: GSYCommonOptionWidget(
+            url: userInfo?.html_url,
+          ),
         )),
         floatingActionButton: new FloatingActionButton(
             child: new Text(focus),
@@ -161,7 +161,7 @@ class _PersonState extends BasePersonState<PersonPage> {
               }
               if (userInfo.type == "Organization") {
                 Fluttertoast.showToast(
-                    msg: CommonUtils.getLocale(context).user_focus_no_support);
+                    msg: GSYLocalizations.i18n(context).user_focus_no_support);
                 return;
               }
               CommonUtils.showLoadingDialog(context);

@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gsy_github_app_flutter/common/dao/repos_dao.dart';
+import 'package:gsy_github_app_flutter/common/localization/default_localizations.dart';
 import 'package:gsy_github_app_flutter/common/style/gsy_style.dart';
 import 'package:gsy_github_app_flutter/common/utils/common_utils.dart';
 import 'package:gsy_github_app_flutter/common/utils/html_utils.dart';
-import 'package:gsy_github_app_flutter/common/utils/navigator_utils.dart';
 import 'package:gsy_github_app_flutter/widget/gsy_common_option_widget.dart';
 import 'package:gsy_github_app_flutter/widget/state/gsy_list_state.dart';
 import 'package:gsy_github_app_flutter/widget/pull/gsy_pull_load_widget.dart';
@@ -36,9 +36,6 @@ class ReleasePage extends StatefulWidget {
 
 class _ReleasePageState extends State<ReleasePage>
     with AutomaticKeepAliveClientMixin<ReleasePage>, GSYListState<ReleasePage> {
-  ///配置标题了右侧的更多显示
-  final OptionControl titleOptionControl = new OptionControl();
-
   ///显示tag还是relase
   int selectIndex = 0;
 
@@ -74,13 +71,13 @@ class _ReleasePageState extends State<ReleasePage>
       await launch(url);
     } else {
       Fluttertoast.showToast(
-          msg: CommonUtils.getLocale(context).option_web_launcher_error +
+          msg: GSYLocalizations.i18n(context).option_web_launcher_error +
               ": " +
               url);
     }
   }
 
-  _getUrl() {
+  String _getUrl() {
     return selectIndex == 0 ? widget.releaseUrl : widget.tagUrl;
   }
 
@@ -111,27 +108,25 @@ class _ReleasePageState extends State<ReleasePage>
 
   @override
   requestRefresh() async {
-    setState(() {
-      titleOptionControl.url = _getUrl();
-    });
     return await _getDataLogic();
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context); // See AutomaticKeepAliveClientMixin.
-    String url = _getUrl();
     return new Scaffold(
       backgroundColor: GSYColors.mainBackgroundColor,
       appBar: new AppBar(
         title: GSYTitleBar(
           widget.reposName,
-          rightWidget: new GSYCommonOptionWidget(titleOptionControl),
+          rightWidget: new GSYCommonOptionWidget(
+            url: _getUrl(),
+          ),
         ),
         bottom: new GSYSelectItemWidget(
           [
-            CommonUtils.getLocale(context).release_tab_release,
-            CommonUtils.getLocale(context).release_tab_tag,
+            GSYLocalizations.i18n(context).release_tab_release,
+            GSYLocalizations.i18n(context).release_tab_tag,
           ],
           (selectIndex) {
             this.selectIndex = selectIndex;

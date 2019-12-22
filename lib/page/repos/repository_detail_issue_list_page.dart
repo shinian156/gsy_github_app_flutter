@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:gsy_github_app_flutter/common/dao/issue_dao.dart';
+import 'package:gsy_github_app_flutter/common/localization/default_localizations.dart';
 import 'package:gsy_github_app_flutter/common/style/gsy_style.dart';
-import 'package:gsy_github_app_flutter/common/utils/common_utils.dart';
 import 'package:gsy_github_app_flutter/common/utils/navigator_utils.dart';
+import 'package:gsy_github_app_flutter/page/repos/scope/repos_detail_model.dart';
 import 'package:gsy_github_app_flutter/widget/pull/nested/gsy_nested_pull_load_widget.dart';
 import 'package:gsy_github_app_flutter/widget/pull/nested/gsy_sliver_header_delegate.dart';
 import 'package:gsy_github_app_flutter/widget/pull/nested/nested_refresh.dart';
@@ -11,6 +12,7 @@ import 'package:gsy_github_app_flutter/widget/state/gsy_list_state.dart';
 import 'package:gsy_github_app_flutter/page/search/widget/gsy_search_input_widget.dart';
 import 'package:gsy_github_app_flutter/page/issue/widget/issue_item.dart';
 import 'package:gsy_github_app_flutter/widget/gsy_select_item_widget.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 /**
  * 仓库详情issue列表
@@ -110,6 +112,11 @@ class RepositoryDetailIssuePageState extends State<RepositoryDetailIssuePage>
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   bool get wantKeepAlive => true;
 
   @override
@@ -131,33 +138,60 @@ class RepositoryDetailIssuePageState extends State<RepositoryDetailIssuePage>
   @override
   Widget build(BuildContext context) {
     super.build(context); // See AutomaticKeepAliveClientMixin.
-    return new Scaffold(
-      backgroundColor: GSYColors.mainBackgroundColor,
-      appBar: new AppBar(
-        leading: new Container(),
-        flexibleSpace: GSYSearchInputWidget((value) {
-          this.searchText = value;
-        }, (value) {
-          _resolveSelectIndex();
-        }, () {
-          _resolveSelectIndex();
-        }),
-        elevation: 0.0,
-        backgroundColor: GSYColors.mainBackgroundColor,
-      ),
+    return ScopedModelDescendant<ReposDetailModel>(
+      builder: (context, child, model) {
+        return new Scaffold(
+          backgroundColor: GSYColors.mainBackgroundColor,
+          appBar: new AppBar(
+            leading: new Container(),
+            flexibleSpace: (model.repository?.hasIssuesEnabled == false)
+                ? new Container()
+                : GSYSearchInputWidget(onSubmitted: (value) {
+                    this.searchText = value;
+                    _resolveSelectIndex();
+                  }, onSubmitPressed: () {
+                    _resolveSelectIndex();
+                  }),
+            elevation: 0.0,
+            backgroundColor: GSYColors.mainBackgroundColor,
+          ),
+          body: (model.repository?.hasIssuesEnabled == false)
+              ? new Container(
+                  alignment: Alignment.center,
+                  child: new Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      FlatButton(
+                        onPressed: () {},
+                        child: new Image(
+                            image: new AssetImage(GSYICons.DEFAULT_USER_ICON),
+                            width: 70.0,
+                            height: 70.0),
+                      ),
+                      Container(
+                        child: Text(
+                            GSYLocalizations.i18n(context)
+                                .repos_no_support_issue,
+                            style: GSYConstant.normalText),
+                      ),
+                    ],
+                  ),
+                )
 
-      ///支持嵌套滚动
-      body: GSYNestedPullLoadWidget(
-        pullLoadWidgetControl,
-        (BuildContext context, int index) => _renderIssueItem(index),
-        handleRefresh,
-        onLoadMore,
-        refreshKey: refreshIKey,
-        scrollController: scrollController,
-        headerSliverBuilder: (context, _) {
-          return _sliverBuilder(context, _);
-        },
-      ),
+              ///支持嵌套滚动
+              : GSYNestedPullLoadWidget(
+                  pullLoadWidgetControl,
+                  (BuildContext context, int index) => _renderIssueItem(index),
+                  handleRefresh,
+                  onLoadMore,
+                  refreshKey: refreshIKey,
+                  scrollController: scrollController,
+                  headerSliverBuilder: (context, _) {
+                    return _sliverBuilder(context, _);
+                  },
+                ),
+        );
+      },
     );
   }
 
@@ -190,9 +224,9 @@ class RepositoryDetailIssuePageState extends State<RepositoryDetailIssuePage>
                       EdgeInsets.only(top: lr, bottom: 10, left: lr, right: lr),
                   child: new GSYSelectItemWidget(
                     [
-                      CommonUtils.getLocale(context).repos_tab_issue_all,
-                      CommonUtils.getLocale(context).repos_tab_issue_open,
-                      CommonUtils.getLocale(context).repos_tab_issue_closed,
+                      GSYLocalizations.i18n(context).repos_tab_issue_all,
+                      GSYLocalizations.i18n(context).repos_tab_issue_open,
+                      GSYLocalizations.i18n(context).repos_tab_issue_closed,
                     ],
                     (selectIndex) {
                       this.selectIndex = selectIndex;

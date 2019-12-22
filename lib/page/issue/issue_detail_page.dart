@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gsy_github_app_flutter/common/dao/issue_dao.dart';
+import 'package:gsy_github_app_flutter/common/localization/default_localizations.dart';
 import 'package:gsy_github_app_flutter/model/Issue.dart';
 import 'package:gsy_github_app_flutter/common/style/gsy_style.dart';
 import 'package:gsy_github_app_flutter/common/utils/common_utils.dart';
@@ -46,6 +47,8 @@ class _IssueDetailPageState extends State<IssueDetailPage>
   ///头部信息数据是否加载成功，成功了就可以显示底部状态
   bool headerStatus = false;
 
+  String htmlUrl;
+
   /// issue 的头部数据显示
   IssueHeaderViewModel issueHeaderViewModel = new IssueHeaderViewModel();
 
@@ -54,9 +57,6 @@ class _IssueDetailPageState extends State<IssueDetailPage>
 
   ///控制编辑时issue的content
   TextEditingController issueInfoValueControl = new TextEditingController();
-
-  ///标题栏右侧显示控制
-  final OptionControl titleOptionControl = new OptionControl();
 
   ///绘制item
   _renderEventItem(index) {
@@ -87,7 +87,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
                     children: <Widget>[
                       new GSYFlexButton(
                         color: GSYColors.white,
-                        text: CommonUtils.getLocale(context)
+                        text: GSYLocalizations.i18n(context)
                             .issue_edit_issue_edit_commit,
                         onPress: () {
                           _editCommit(issue.id.toString(), issue.body);
@@ -95,7 +95,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
                       ),
                       new GSYFlexButton(
                         color: GSYColors.white,
-                        text: CommonUtils.getLocale(context)
+                        text: GSYLocalizations.i18n(context)
                             .issue_edit_issue_delete_commit,
                         onPress: () {
                           _deleteCommit(issue.id.toString());
@@ -103,7 +103,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
                       ),
                       new GSYFlexButton(
                         color: GSYColors.white,
-                        text: CommonUtils.getLocale(context)
+                        text: GSYLocalizations.i18n(context)
                             .issue_edit_issue_copy_commit,
                         onPress: () {
                           CommonUtils.copy(issue.body, context);
@@ -150,7 +150,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
     Issue issue = res.data;
     setState(() {
       issueHeaderViewModel = IssueHeaderViewModel.fromMap(issue);
-      titleOptionControl.url = issue.htmlUrl;
+      htmlUrl = issue.htmlUrl;
       headerStatus = true;
     });
   }
@@ -163,7 +163,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
     //编译Issue Info
     CommonUtils.showEditDialog(
       context,
-      CommonUtils.getLocale(context).issue_edit_issue,
+      GSYLocalizations.i18n(context).issue_edit_issue,
       null,
       (contentValue) {
         contentData = contentValue;
@@ -171,7 +171,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
       () {
         if (contentData == null || contentData.trim().length == 0) {
           Fluttertoast.showToast(
-              msg: CommonUtils.getLocale(context)
+              msg: GSYLocalizations.i18n(context)
                   .issue_edit_issue_content_not_be_null);
           return;
         }
@@ -211,7 +211,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
     //编译Issue Info
     CommonUtils.showEditDialog(
       context,
-      CommonUtils.getLocale(context).issue_edit_issue,
+      GSYLocalizations.i18n(context).issue_edit_issue,
       (titleValue) {
         title = titleValue;
       },
@@ -221,13 +221,13 @@ class _IssueDetailPageState extends State<IssueDetailPage>
       () {
         if (title == null || title.trim().length == 0) {
           Fluttertoast.showToast(
-              msg: CommonUtils.getLocale(context)
+              msg: GSYLocalizations.i18n(context)
                   .issue_edit_issue_title_not_be_null);
           return;
         }
         if (content == null || content.trim().length == 0) {
           Fluttertoast.showToast(
-              msg: CommonUtils.getLocale(context)
+              msg: GSYLocalizations.i18n(context)
                   .issue_edit_issue_content_not_be_null);
           return;
         }
@@ -254,7 +254,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
     String content = "";
     CommonUtils.showEditDialog(
       context,
-      CommonUtils.getLocale(context).issue_reply_issue,
+      GSYLocalizations.i18n(context).issue_reply_issue,
       null,
       (replyContent) {
         content = replyContent;
@@ -262,7 +262,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
       () {
         if (content == null || content.trim().length == 0) {
           Fluttertoast.showToast(
-              msg: CommonUtils.getLocale(context)
+              msg: GSYLocalizations.i18n(context)
                   .issue_edit_issue_content_not_be_null);
           return;
         }
@@ -291,7 +291,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
               onPressed: () {
                 _replyIssue();
               },
-              child: new Text(CommonUtils.getLocale(context).issue_reply,
+              child: new Text(GSYLocalizations.i18n(context).issue_reply,
                   style: GSYConstant.smallText),
             ),
             new Container(
@@ -300,7 +300,7 @@ class _IssueDetailPageState extends State<IssueDetailPage>
               onPressed: () {
                 _editIssue();
               },
-              child: new Text(CommonUtils.getLocale(context).issue_edit,
+              child: new Text(GSYLocalizations.i18n(context).issue_edit,
                   style: GSYConstant.smallText),
             ),
             new Container(
@@ -320,8 +320,8 @@ class _IssueDetailPageState extends State<IssueDetailPage>
                 },
                 child: new Text(
                     (issueHeaderViewModel.state == 'closed')
-                        ? CommonUtils.getLocale(context).issue_open
-                        : CommonUtils.getLocale(context).issue_close,
+                        ? GSYLocalizations.i18n(context).issue_open
+                        : GSYLocalizations.i18n(context).issue_close,
                     style: GSYConstant.smallText)),
             new Container(
                 width: 0.3, height: 30.0, color: GSYColors.subLightTextColor),
@@ -337,8 +337,8 @@ class _IssueDetailPageState extends State<IssueDetailPage>
                 },
                 child: new Text(
                     (issueHeaderViewModel.locked)
-                        ? CommonUtils.getLocale(context).issue_unlock
-                        : CommonUtils.getLocale(context).issue_lock,
+                        ? GSYLocalizations.i18n(context).issue_unlock
+                        : GSYLocalizations.i18n(context).issue_lock,
                     style: GSYConstant.smallText)),
           ];
     return bottomWidget;
@@ -366,9 +366,8 @@ class _IssueDetailPageState extends State<IssueDetailPage>
   @override
   Widget build(BuildContext context) {
     super.build(context); // See AutomaticKeepAliveClientMixin.
-    Widget widgetContent = (widget.needHomeIcon)
-        ? null
-        : new GSYCommonOptionWidget(titleOptionControl);
+    Widget widgetContent =
+        (widget.needHomeIcon) ? null : new GSYCommonOptionWidget(url: htmlUrl);
     return new Scaffold(
       persistentFooterButtons: _getBottomWidget(),
       appBar: new AppBar(

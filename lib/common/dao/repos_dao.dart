@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gsy_github_app_flutter/common/localization/default_localizations.dart';
+import 'package:gsy_github_app_flutter/common/net/graphql/client.dart';
 import 'package:gsy_github_app_flutter/common/net/transformer.dart';
 import 'package:gsy_github_app_flutter/db/provider/repos/read_history_db_provider.dart';
 import 'package:gsy_github_app_flutter/db/provider/repos/repository_commits_db_provider.dart';
@@ -26,6 +28,7 @@ import 'package:gsy_github_app_flutter/model/PushCommit.dart';
 import 'package:gsy_github_app_flutter/model/Release.dart';
 import 'package:gsy_github_app_flutter/model/RepoCommit.dart';
 import 'package:gsy_github_app_flutter/model/Repository.dart';
+import 'package:gsy_github_app_flutter/model/RepositoryQL.dart';
 import 'package:gsy_github_app_flutter/model/TrendingRepoModel.dart';
 import 'package:gsy_github_app_flutter/model/User.dart';
 import 'package:gsy_github_app_flutter/common/net/address.dart';
@@ -34,7 +37,6 @@ import 'package:gsy_github_app_flutter/common/net/trending/github_trending.dart'
 import 'package:gsy_github_app_flutter/common/utils/common_utils.dart';
 import 'package:package_info/package_info.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:redux/redux.dart';
 
 /**
  * Created by guoshuyu
@@ -54,36 +56,57 @@ class ReposDao {
     String languageTypeDb = languageType ?? "*";
 
     next() async {
-      String url = Address.trending(since, languageType);
-      var res = await new GitHubTrending().fetchTrending(url);
-      if (res != null && res.result && res.data.length > 0) {
+      String url = Address.trendingApi(since, languageType);
+      var result = await httpManager.netFetch(
+          url, null, {"api-token": Config.API_TOKEN}, null,
+          noTip: true);
+      if (result != null && result.result && result.data is List) {
         List<TrendingRepoModel> list = new List();
-        var data = res.data;
+        var data = result.data;
         if (data == null || data.length == 0) {
           return new DataResult(null, false);
         }
         if (needDb) {
-          provider.insert(languageTypeDb, since, json.encode(data));
+          provider.insert(languageTypeDb + "V2", since, json.encode(data));
         }
         for (int i = 0; i < data.length; i++) {
-          TrendingRepoModel model = data[i];
+          TrendingRepoModel model = TrendingRepoModel.fromJson(data[i]);
           list.add(model);
         }
         return new DataResult(list, true);
       } else {
-        return new DataResult(null, false);
+        String url = Address.trending(since, languageType);
+        var res = await new GitHubTrending().fetchTrending(url);
+        if (res != null && res.result && res.data.length > 0) {
+          List<TrendingRepoModel> list = new List();
+          var data = res.data;
+          if (data == null || data.length == 0) {
+            return new DataResult(null, false);
+          }
+          if (needDb) {
+            provider.insert(languageTypeDb + "V2", since, json.encode(data));
+          }
+          for (int i = 0; i < data.length; i++) {
+            TrendingRepoModel model = data[i];
+            list.add(model);
+          }
+          return new DataResult(list, true);
+        } else {
+          return new DataResult(null, false);
+        }
       }
     }
 
     if (needDb) {
       List<TrendingRepoModel> list =
-          await provider.getData(languageTypeDb, since);
+          await provider.getData(languageTypeDb + "V2", since);
       if (list == null || list.length == 0) {
         return await next();
       }
       DataResult dataResult = new DataResult(list, true, next: next);
       return dataResult;
     }
+    return await next();
   }
 
   /**
@@ -91,42 +114,33 @@ class ReposDao {
    */
   static getRepositoryDetailDao(userName, reposName, branch,
       {needDb = true}) async {
-    String fullName = userName + "/" + reposName;
+    String fullName = userName + "/" + reposName + "v3";
     RepositoryDetailDbProvider provider = new RepositoryDetailDbProvider();
 
     next() async {
-      String url =
-          Address.getReposDetail(userName, reposName) + "?ref=" + branch;
-      var res = await httpManager.netFetch(url, null,
-          {"Accept": 'application/vnd.github.mercy-preview+json'}, null);
-      if (res != null && res.result && res.data.length > 0) {
-        var data = res.data;
-        if (data == null || data.length == 0) {
+      var result = await getRepository(userName, reposName);
+      if (result != null && result.data != null) {
+        var data = result.data["repository"];
+        if (data == null) {
           return new DataResult(null, false);
         }
-        Repository repository = Repository.fromJson(data);
-        var issueResult =
-            await ReposDao.getRepositoryIssueStatusDao(userName, reposName);
-        if (issueResult != null && issueResult.result) {
-          repository.allIssueCount = int.parse(issueResult.data);
-        }
+        var repositoryQL = RepositoryQL.fromMap(data);
         if (needDb) {
-          provider.insert(fullName, json.encode(repository.toJson()));
+          provider.insert(fullName, json.encode(data));
         }
-        saveHistoryDao(
-            fullName, DateTime.now(), json.encode(repository.toJson()));
-        return new DataResult(repository, true);
+        saveHistoryDao(fullName, DateTime.now(), json.encode(data));
+        return new DataResult(repositoryQL, true);
       } else {
         return new DataResult(null, false);
       }
     }
 
     if (needDb) {
-      Repository repository = await provider.getRepository(fullName);
-      if (repository == null) {
+      RepositoryQL repositoryQL = await provider.getRepository(fullName);
+      if (repositoryQL == null) {
         return await next();
       }
-      DataResult dataResult = new DataResult(repository, true, next: next);
+      DataResult dataResult = new DataResult(repositoryQL, true, next: next);
       return dataResult;
     }
     return await next();
@@ -289,6 +303,7 @@ class ReposDao {
    */
   static doRepositoryWatchDao(userName, reposName, watch) async {
     String url = Address.resolveWatcherRepos(userName, reposName);
+    print("##### $watch");
     var res = await httpManager.netFetch(
         url, null, null, new Options(method: !watch ? 'PUT' : 'DELETE'));
     return new DataResult(null, res.result);
@@ -520,11 +535,13 @@ class ReposDao {
         var data = dataList[i];
 
         ///测试代码
-        Serializer<Branch> serializerForType = serializers.serializerForType(Branch);
-        var test =  serializers.deserializeWith<Branch>(serializerForType, data);
+        Serializer<Branch> serializerForType =
+            serializers.serializerForType(Branch);
+        var test = serializers.deserializeWith<Branch>(serializerForType, data);
+
         /// 反序列化
         Map result = serializers.serializeWith(serializerForType, test);
-        print("###### $test ${result}");
+        //print("###### $test ${result}");
 
         list.add(data['name']);
       }
@@ -698,7 +715,7 @@ class ReposDao {
     if (Platform.isIOS) {
       return;
     }
-    var res = await getRepositoryReleaseDao("CarGuo", 'GSYGithubAppFlutter', 1,
+    var res = await getRepositoryReleaseDao("CarGuo", 'gsy_github_app_flutter', 1,
         needHtml: false);
     if (res != null && res.result && res.data.length > 0) {
       Release release = res.data[0];
@@ -732,7 +749,7 @@ class ReposDao {
         } else {
           if (showTip)
             Fluttertoast.showToast(
-                msg: CommonUtils.getLocale(context).app_not_new_version);
+                msg: GSYLocalizations.i18n(context).app_not_new_version);
         }
       }
     }
@@ -794,7 +811,7 @@ class ReposDao {
    */
   static getHistoryDao(page) async {
     ReadHistoryDbProvider provider = new ReadHistoryDbProvider();
-    List<Repository> list = await provider.geData(page);
+    List<RepositoryQL> list = await provider.geData(page);
     if (list == null || list.length <= 0) {
       return new DataResult(null, false);
     }

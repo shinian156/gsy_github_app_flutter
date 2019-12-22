@@ -1,4 +1,4 @@
-import 'package:gsy_github_app_flutter/common/style/gsy_string_base.dart';
+import 'package:gsy_github_app_flutter/common/localization/gsy_string_base.dart';
 
 /**
  * Created by guoshuyu
@@ -127,6 +127,8 @@ class GSYStringZh extends GSYStringBase {
   String home_my = "我的";
 
   @override
+  String trend_user_title = "中国用户趋势";
+  @override
   String trend_day = '今日';
   @override
   String trend_week = '本周';
@@ -197,6 +199,9 @@ class GSYStringZh extends GSYStringBase {
 
   @override
   String repos_issue_search = "搜索";
+
+  @override
+  String repos_no_support_issue = "该项目没有开启 Issue";
 
   @override
   String issue_reply = "回复";

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gsy_github_app_flutter/common/localization/default_localizations.dart';
 import 'package:gsy_github_app_flutter/common/style/gsy_style.dart';
 import 'package:gsy_github_app_flutter/common/utils/common_utils.dart';
 
@@ -8,13 +9,14 @@ import 'package:gsy_github_app_flutter/common/utils/common_utils.dart';
  * Date: 2018-07-20
  */
 class GSYSearchInputWidget extends StatelessWidget {
-  final ValueChanged<String> onChanged;
+  final TextEditingController controller;
 
   final ValueChanged<String> onSubmitted;
 
   final VoidCallback onSubmitPressed;
 
-  GSYSearchInputWidget(this.onChanged, this.onSubmitted, this.onSubmitPressed);
+  GSYSearchInputWidget(
+      {this.controller, this.onSubmitted, this.onSubmitPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -38,12 +40,13 @@ class GSYSearchInputWidget extends StatelessWidget {
           new Expanded(
               child: new TextField(
                   autofocus: false,
+                  controller: controller,
                   decoration: new InputDecoration.collapsed(
-                    hintText: CommonUtils.getLocale(context).repos_issue_search,
+                    hintText: GSYLocalizations.i18n(context).repos_issue_search,
                     hintStyle: GSYConstant.middleSubText,
                   ),
-                  style: GSYConstant.middleText,
-                  onChanged: onChanged,
+                  style: GSYConstant.middleText
+                      .copyWith(textBaseline: TextBaseline.alphabetic),
                   onSubmitted: onSubmitted)),
           new RawMaterialButton(
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

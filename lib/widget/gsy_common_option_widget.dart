@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gsy_github_app_flutter/common/localization/default_localizations.dart';
 import 'package:gsy_github_app_flutter/common/style/gsy_style.dart';
 import 'package:gsy_github_app_flutter/common/utils/common_utils.dart';
 import 'package:share/share.dart';
@@ -10,9 +11,10 @@ import 'package:share/share.dart';
 class GSYCommonOptionWidget extends StatelessWidget {
   final List<GSYOptionModel> otherList;
 
-  final OptionControl control;
+  final String url;
 
-  GSYCommonOptionWidget(this.control, {this.otherList});
+  GSYCommonOptionWidget({this.otherList, String url})
+      : this.url = (url == null) ? GSYConstant.app_default_share_url : url;
 
   _renderHeaderPopItem(List<GSYOptionModel> list) {
     return new PopupMenuButton<GSYOptionModel>(
@@ -39,31 +41,24 @@ class GSYCommonOptionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<GSYOptionModel> list = [
-      new GSYOptionModel(CommonUtils.getLocale(context).option_web,
-          CommonUtils.getLocale(context).option_web, (model) {
-        CommonUtils.launchOutURL(control.url, context);
+    List<GSYOptionModel> constList = [
+      new GSYOptionModel(GSYLocalizations.i18n(context).option_web,
+          GSYLocalizations.i18n(context).option_web, (model) {
+        CommonUtils.launchOutURL(url, context);
       }),
-      new GSYOptionModel(CommonUtils.getLocale(context).option_copy,
-          CommonUtils.getLocale(context).option_copy, (model) {
-        CommonUtils.copy(control.url ?? "", context);
+      new GSYOptionModel(GSYLocalizations.i18n(context).option_copy,
+          GSYLocalizations.i18n(context).option_copy, (model) {
+        CommonUtils.copy(url ?? "", context);
       }),
-      new GSYOptionModel(CommonUtils.getLocale(context).option_share,
-          CommonUtils.getLocale(context).option_share, (model) {
+      new GSYOptionModel(GSYLocalizations.i18n(context).option_share,
+          GSYLocalizations.i18n(context).option_share, (model) {
         Share.share(
-            CommonUtils.getLocale(context).option_share_title + control.url ??
-                "");
+            GSYLocalizations.i18n(context).option_share_title + url ?? "");
       }),
     ];
-    if (otherList != null && otherList.length > 0) {
-      list.addAll(otherList);
-    }
+    var list = [...constList, ...?otherList];
     return _renderHeaderPopItem(list);
   }
-}
-
-class OptionControl {
-  String url = GSYConstant.app_default_share_url;
 }
 
 class GSYOptionModel {

@@ -18,7 +18,7 @@
 * ### [如果克隆太慢，可尝试码云地址下载](https://gitee.com/CarGuo/GSYGithubAppFlutter)
 
 ```!
-基于Flutter开发，适配Android与IOS。
+基于Flutter开发，适配 Android 与 iOS。
 
 项目的目的是为方便个人日常维护和查阅Github，更好的沉浸于码友之间的互基，Github就是你的家。
 
@@ -38,6 +38,10 @@
 > 2、 Scoped Model：目前在 RepositoryDetailPage 出使用
 >
 > 3、 Redux：目前在 MyPage ，UserInfo、Theme、Localization 等上面使用。
+>
+> 4、 LoginPage：另类的 BLoC 模式。
+> 
+> 5、 ReposDao.getRepositoryDetailDao 使用 graphQL
 > 
 > **列表显示有多个，其中：**
 > 
@@ -46,7 +50,7 @@
 >
 > 2、**gsy_pull_new_load_widget.dart.dart**
 > `dynamic_page.dart 等使用，搭配 gsy_bloc_list_state.dart 使用`
-> `有 IOS 和 Android 两种风格下拉风格支持`
+> `有 iOS 和 Android 两种风格下拉风格支持`
 > 
 > 3、**gsy_nested_pull_load_widget.dart**
 > `trend_page.dart 等使用，配置sliver 效果`
@@ -125,7 +129,7 @@
 | 类型          | 二维码                                      |
 | ----------- | ---------------------------------------- |
 | **Apk二维码**  | ![](https://raw.githubusercontent.com/CarGuo/GSYGithubAppFlutter/master/download.png) |
-| **IOS暂无下载** | ![](https://raw.githubusercontent.com/CarGuo/GSYGithubAppFlutter/master/ios_wait.png) |
+| **iOS暂无下载** | ![](https://raw.githubusercontent.com/CarGuo/GSYGithubAppFlutter/master/ios_wait.png) |
 
 
 

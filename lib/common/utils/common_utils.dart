@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -14,7 +15,7 @@ import 'package:gsy_github_app_flutter/common/net/address.dart';
 import 'package:gsy_github_app_flutter/redux/gsy_state.dart';
 import 'package:gsy_github_app_flutter/redux/locale_redux.dart';
 import 'package:gsy_github_app_flutter/redux/theme_redux.dart';
-import 'package:gsy_github_app_flutter/common/style/gsy_string_base.dart';
+import 'package:gsy_github_app_flutter/common/localization/gsy_string_base.dart';
 import 'package:gsy_github_app_flutter/common/style/gsy_style.dart';
 import 'package:gsy_github_app_flutter/common/utils/navigator_utils.dart';
 import 'package:gsy_github_app_flutter/widget/gsy_flex_button.dart';
@@ -116,6 +117,22 @@ class CommonUtils {
     return appPath;
   }
 
+  static String removeTextTag(String description) {
+    if (description != null) {
+      String reg = "<g-emoji.*?>.+?</g-emoji>";
+      RegExp tag = new RegExp(reg);
+      Iterable<Match> tags = tag.allMatches(description);
+      for (Match m in tags) {
+        String match = m
+            .group(0)
+            .replaceAll(new RegExp("<g-emoji.*?>"), "")
+            .replaceAll(new RegExp("</g-emoji>"), "");
+        description = description.replaceAll(new RegExp(m.group(0)), match);
+      }
+    }
+    return description;
+  }
+
   static saveImage(String url) async {
     Future<String> _findPath(String imageUrl) async {
       final file = await DefaultCacheManager().getSingleFile(url);
@@ -167,9 +184,9 @@ class CommonUtils {
 
   static showLanguageDialog(BuildContext context) {
     List<String> list = [
-      CommonUtils.getLocale(context).home_language_default,
-      CommonUtils.getLocale(context).home_language_zh,
-      CommonUtils.getLocale(context).home_language_en,
+      GSYLocalizations.i18n(context).home_language_default,
+      GSYLocalizations.i18n(context).home_language_zh,
+      GSYLocalizations.i18n(context).home_language_en,
     ];
     CommonUtils.showCommitOptionDialog(context, list, (index) {
       CommonUtils.changeLocale(StoreProvider.of<GSYState>(context), index);
@@ -177,11 +194,24 @@ class CommonUtils {
     }, height: 150.0);
   }
 
+  ///获取设备信息
+  static Future<String> getDeviceInfo() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      return "";
+    }
+    IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+    return iosInfo.model;
+  }
+
   /**
    * 切换语言
    */
   static changeLocale(Store<GSYState> store, int index) {
     Locale locale = store.state.platformLocale;
+    if (Config.DEBUG) {
+      print(store.state.platformLocale);
+    }
     switch (index) {
       case 1:
         locale = Locale('zh', 'CH');
@@ -192,10 +222,6 @@ class CommonUtils {
     }
     curLocale = locale;
     store.dispatch(RefreshLocaleAction(locale));
-  }
-
-  static GSYStringBase getLocale(BuildContext context) {
-    return GSYLocalizations.of(context).currentLocalized;
   }
 
   static List<Color> getThemeListColor() {
@@ -225,7 +251,7 @@ class CommonUtils {
   static copy(String data, BuildContext context) {
     Clipboard.setData(new ClipboardData(text: data));
     Fluttertoast.showToast(
-        msg: CommonUtils.getLocale(context).option_share_copy_success);
+        msg: GSYLocalizations.i18n(context).option_share_copy_success);
   }
 
   static launchUrl(context, String url) {
@@ -281,7 +307,7 @@ class CommonUtils {
       await launch(url);
     } else {
       Fluttertoast.showToast(
-          msg: CommonUtils.getLocale(context).option_web_launcher_error +
+          msg: GSYLocalizations.i18n(context).option_web_launcher_error +
               ": " +
               url);
     }
@@ -309,12 +335,11 @@ class CommonUtils {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         new Container(
-                            child:
-                                SpinKitCubeGrid(color: GSYColors.white)),
+                            child: SpinKitCubeGrid(color: GSYColors.white)),
                         new Container(height: 10.0),
                         new Container(
                             child: new Text(
-                                CommonUtils.getLocale(context).loading_text,
+                                GSYLocalizations.i18n(context).loading_text,
                                 style: GSYConstant.normalTextWhite)),
                       ],
                     ),
@@ -404,20 +429,20 @@ class CommonUtils {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: new Text(CommonUtils.getLocale(context).app_version_title),
+            title: new Text(GSYLocalizations.i18n(context).app_version_title),
             content: new Text(contentMsg),
             actions: <Widget>[
               new FlatButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: new Text(CommonUtils.getLocale(context).app_cancel)),
+                  child: new Text(GSYLocalizations.i18n(context).app_cancel)),
               new FlatButton(
                   onPressed: () {
                     launch(Address.updateUrl);
                     Navigator.pop(context);
                   },
-                  child: new Text(CommonUtils.getLocale(context).app_ok)),
+                  child: new Text(GSYLocalizations.i18n(context).app_ok)),
             ],
           );
         });

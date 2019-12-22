@@ -5,12 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:gsy_github_app_flutter/common/router/anima_route.dart';
 import 'package:gsy_github_app_flutter/page/code_detail_page_web.dart';
 import 'package:gsy_github_app_flutter/page/common_list_page.dart';
+import 'package:gsy_github_app_flutter/page/debug/debug_data_page.dart';
 import 'package:gsy_github_app_flutter/page/gsy_webview.dart';
 import 'package:gsy_github_app_flutter/page/home/home_page.dart';
 import 'package:gsy_github_app_flutter/page/honor_list_page.dart';
 import 'package:gsy_github_app_flutter/page/issue/issue_detail_page.dart';
 import 'package:gsy_github_app_flutter/page/login/login_page.dart';
 import 'package:gsy_github_app_flutter/page/notify_page.dart';
+import 'package:gsy_github_app_flutter/page/trend/trend_page.dart';
+import 'package:gsy_github_app_flutter/page/trend/trend_user_page.dart';
 import 'package:gsy_github_app_flutter/page/user/person_page.dart';
 import 'package:gsy_github_app_flutter/page/photoview_page.dart';
 import 'package:gsy_github_app_flutter/page/push/push_detail_page.dart';
@@ -28,6 +31,28 @@ class NavigatorUtils {
   ///替换
   static pushReplacementNamed(BuildContext context, String routeName) {
     Navigator.pushReplacementNamed(context, routeName);
+//    if (navigator == null) {
+//      try {
+//        navigator = Navigator.of(context);
+//      } catch (e) {
+//        error = true;
+//      }
+//    }
+//
+//    if (replace) {
+//      ///如果可以返回，清空开始，然后塞入
+//      if (!error && navigator.canPop()) {
+//        navigator.pushAndRemoveUntil(
+//          router,
+//          ModalRoute.withName('/'),
+//        );
+//      } else {
+//        ///如果不可返回，直接替换当前
+//        navigator.pushReplacement(router);
+//      }
+//    } else {
+//      navigator.push(router);
+//    }
   }
 
   ///切换无参数页面
@@ -45,9 +70,19 @@ class NavigatorUtils {
     Navigator.pushReplacementNamed(context, LoginPage.sName);
   }
 
+  ///图片预览
+  static gotoPhotoViewPage(BuildContext context, String url) {
+    Navigator.pushNamed(context, PhotoViewPage.sName, arguments: url);
+  }
+
   ///个人中心
   static goPerson(BuildContext context, String userName) {
     NavigatorRouter(context, new PersonPage(userName));
+  }
+
+  ///请求数据调试页面
+  static goDebugDataPage(BuildContext context) {
+    return NavigatorRouter(context, new DebugDataPage());
   }
 
   ///仓库详情
@@ -111,6 +146,11 @@ class NavigatorUtils {
   ///仓库详情通知
   static Future goNotifyPage(BuildContext context) {
     return NavigatorRouter(context, new NotifyPage());
+  }
+
+  ///用户趋势
+  static Future goTrendUserPage(BuildContext context) {
+    return NavigatorRouter(context, new TrendUserPage());
   }
 
   ///搜索
@@ -198,11 +238,6 @@ class NavigatorUtils {
       path: path,
       branch: branch,
     );
-  }
-
-  ///图片预览
-  static gotoPhotoViewPage(BuildContext context, String url) {
-    NavigatorRouter(context, new PhotoViewPage(url));
   }
 
   ///用户配置

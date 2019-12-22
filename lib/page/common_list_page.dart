@@ -49,6 +49,12 @@ class _CommonListPageState extends State<CommonListPage>
           NavigatorUtils.goReposDetail(
               context, reposViewModel.ownerName, reposViewModel.repositoryName);
         });
+      case 'repositoryql':
+        ReposViewModel reposViewModel = ReposViewModel.fromQL(data);
+        return new ReposItem(reposViewModel, onPressed: () {
+          NavigatorUtils.goReposDetail(
+              context, reposViewModel.ownerName, reposViewModel.repositoryName);
+        });
       case 'user':
         return new UserItem(UserItemViewModel.fromMap(data), onPressed: () {
           NavigatorUtils.goPerson(context, data.login);
@@ -136,7 +142,7 @@ class _CommonListPageState extends State<CommonListPage>
     return new Scaffold(
       appBar: new AppBar(
           title: new Text(
-        widget.title,
+        widget.title ?? "",
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       )),
